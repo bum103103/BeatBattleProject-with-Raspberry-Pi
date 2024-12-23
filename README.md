@@ -44,11 +44,9 @@
 
 <br/>
 
-## 데모(스크린샷 / 영상) (선택)
+## 데모
 
-> 이 부분에는 **직접 찍은 사진**이나 **동영상** 링크를 넣어 주세요.  
-> - 예) [유튜브 시연 영상](https://youtube.com/...)  
-> - 예) ![시연 장면 스크린샷](./images/demo_screenshot.png)
+> - 추후 업데이트 예정
 
 <br/>
 
@@ -120,7 +118,7 @@ BeatBattle/
 
 1. **이 저장소를 클론**합니다.
    ```bash
-   git clone https://github.com/<YOUR_ID>/BeatBattle.git
+   git clone https://github.com/bum103103/BeatBattleProject-with-Raspberry-Pi.git
    cd BeatBattle/server
    ```
 2. **패키지 설치**  
@@ -181,9 +179,9 @@ BeatBattle/
 
 ## 개발자 정보 (About Me)
 
-- **개발자**: (본인 이름/닉네임)  
-- **역할**: 1인 개발 (기획, 하드웨어 배선, 소프트웨어 설계, 테스트, 웹 UI)  
-- **연락처**: (이메일 or GitHub 프로필)  
+- **개발자**: 김범준/bum103103, 유정원/mahoora0
+- **역할**: 김범준/기획, 하드웨어 배선, 소프트웨어 설계, 테스트  유정원/기획, 하드웨어 배선, 소프트웨어 설계, 테스트, 웹 UI
+- **연락처**: 김범준/bum103103, 유정원/mahoora0
 
 <br/>
 
