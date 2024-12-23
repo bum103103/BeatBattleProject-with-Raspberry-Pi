@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeatBattle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f9;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .info {
+            margin: 10px;
+        }
+        .game-selection, .game-control {
+            margin: 20px;
+            display: inline-block;
+        }
+        .scores {
+            background: #fff;
+            display: inline-block;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .scores h2 {
+            margin-bottom: 10px;
+        }
+        .bgm-controls, .game-selection, .game-control {
+            margin-top: 20px;
+            display: inline-block;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .bgm-controls button, .game-selection button, .game-control button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 1em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .bgm-controls button.start {
+            background-color: #5cb85c;
+            color: white;
+        }
+        .bgm-controls button.stop {
+            background-color: #d9534f;
+            color: white;
+        }
+        .game-selection select {
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .game-selection button {
+            background-color: #0275d8;
+            color: white;
+        }
+        .game-control button.start {
+            background-color: #5cb85c;
+            color: white;
+        }
+        .game-control button.stop {
+            background-color: #d9534f;
+            color: white;
+        }
+        /* 리듬게임용 화면 */
+        .rhythm-container {
+            margin-top: 40px;
+            position: relative;
+            width: 300px;
+            height: 400px;
+            margin: 0 auto;
+            background: #ddd;
+            border: 1px solid #aaa;
+        }
+        .column {
+            width: 33.3%;
+            height: 100%;
+            float: left;
+            position: relative;
+            border-right: 1px solid #aaa;
+        }
+        .column:last-child {
+            border-right: none;
+        }
+        .note {
+            width: 100%;
+            height: 20px;
+            background: red;
+            position: absolute;
+            top: 0;
+            transition: top 2s linear;
+        }
+        .judgeline {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            height: 2px;
+            background: black;
+        }
+    </style>
+    <script>
+        let currentGame = 'reaction';
+        let gameActive = false;
+        let scores = { "Player 1": 0, "Player 2": 0 };
+        let rhythmNotes = [];
+        let gameStartTime = null;
+
+        // 1초마다 게임 상태 갱신
+        setInterval(updateStatus, 1000);
+        window.onload = updateStatus;
+
+        async function updateStatus(){
+            const res = await fetch('/update');
+            const data = await res.json();
+            scores = data.scores;
+            currentGame = data.current_game;
+            gameActive = data.game_active;
+
+            document.getElementById('current-game').innerText = currentGame ? currentGame : "None";
+            document.getElementById('score-p1').innerText = scores["Player 1"];
+            document.getElementById('score-p2').innerText = scores["Player 2"];
+            document.getElementById('game-status-text').innerText = gameActive ? "Running" : "Stopped";
+
+            // 리듬 게임 활성 상태면 노트 가져오기
+            if(currentGame === 'rhythm' && gameActive){
+                if(!gameStartTime){
+                    // 웹 쪽에서만 쓰는 gameStartTime
+                    gameStartTime = Date.now();
+                    fetchRhythmNotes();
+                }
+            } else {
+                // 리듬게임이 아니라면 초기화
+                clearRhythmContainer();
+            }
+        }
+
+        async function setGame() {
+            const gameSelect = document.getElementById('game-select');
+            const selectedGame = gameSelect.value;
+            const res = await fetch('/set_game', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({game: selectedGame})
+            });
+            const data = await res.json();
+            if(data.status === 'success'){
+                alert('게임 모드 설정: ' + data.current_game);
+            } else {
+                alert('게임 모드 설정 실패: ' + data.message);
+            }
+        }
+
+        async function startGame() {
+            const gameSelect = document.getElementById('game-select');
+            const selectedGame = gameSelect.value;
+            if(!selectedGame){
+                alert("게임 모드를 먼저 선택해주세요.");
+                return;
+            }
+            const res = await fetch('/start_game', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({game: selectedGame})
+            });
+            const data = await res.json();
+            if(data.status === 'started'){
+                alert('게임 시작!');
+                if(selectedGame === 'rhythm'){
+                    // 웹 상에서도 리듬게임 시작 시점 기록
+                    gameStartTime = Date.now();
+                    fetchRhythmNotes();
+                }
+            } else {
+                alert('게임 시작 실패: ' + data.message);
+            }
+        }
+
+        async function stopGame() {
+            const gameSelect = document.getElementById('game-select');
+            const selectedGame = gameSelect.value;
+            if(!selectedGame){
+                alert("게임 모드를 먼저 선택해주세요.");
+                return;
+            }
+            const res = await fetch('/stop_game', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({game: selectedGame})
+            });
+            const data = await res.json();
+            if(data.status === 'stopped'){
+                alert('게임 종료!');
+                gameStartTime = null;
+                clearRhythmContainer();
+            } else {
+                alert('게임 종료 실패: ' + data.message);
+            }
+        }
+
+        async function fetchRhythmNotes(){
+            const res = await fetch('/get_notes');
+            const data = await res.json();
+            rhythmNotes = data.notes;
+            startRhythmAnimation();
+        }
+
+        function startRhythmAnimation(){
+            // rhythmNotes 배열에 있는 각 노트마다 setTimeout을 걸어 주기
+            rhythmNotes.forEach(note => {
+                const delay = note.time - (Date.now() - gameStartTime);
+                if(delay < 0){
+                    // 이미 지나간 노트는 무시
+                    return;
+                }
+                setTimeout(() => {
+                    createNoteElement(note.column);
+                }, delay);
+            });
+        }
+
+        function createNoteElement(column){
+            const colDiv = document.getElementById('col' + column);
+            const noteDiv = document.createElement('div');
+            noteDiv.className = 'note';
+            noteDiv.style.top = '0px';
+            colDiv.appendChild(noteDiv);
+
+            // CSS transition으로 2초간 내려오는 효과
+            setTimeout(() => {
+                noteDiv.style.top = '380px'; 
+                // judgeline이 bottom:20px 지점이므로 380px 정도 내려가면 만남
+                setTimeout(() => {
+                    if(colDiv.contains(noteDiv)){
+                        colDiv.removeChild(noteDiv);
+                    }
+                }, 2000);
+            }, 10); 
+        }
+
+        function clearRhythmContainer(){
+            const columns = document.querySelectorAll('.column');
+            columns.forEach(col => {
+                col.innerHTML = '<div class="judgeline"></div>';
+            });
+            rhythmNotes = [];
+            gameStartTime = null;
+        }
+
+        async function controlBGM(endpoint){
+            try {
+                const res = await fetch(endpoint);
+                const text = await res.text();
+                alert(text);
+            } catch(e){
+                alert('BGM control error: ' + e);
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>BeatBattle</h1>
+    <div class="info">
+        <p>Current Game: <span id="current-game">reaction</span></p>
+        <p>Game Status: <span id="game-status-text">Stopped</span></p>
+    </div>
+    <div class="game-selection">
+        <h2>게임 선택</h2>
+        <select id="game-select">
+            <option value="reaction">Reaction Speed</option>
+            <option value="rhythm">Rhythm Game</option>
+        </select>
+        <button onclick="setGame()">Set Game</button>
+    </div>
+    <div class="game-control">
+        <h2>게임 제어</h2>
+        <button class="start" onclick="startGame()">Start Game</button>
+        <button class="stop" onclick="stopGame()">Stop Game</button>
+    </div>
+    <div class="scores">
+        <h2>Scores</h2>
+        <p>Player 1: <span id="score-p1">0</span></p>
+        <p>Player 2: <span id="score-p2">0</span></p>
+    </div>
+    <div class="bgm-controls">
+        <h2>BGM Controls</h2>
+        <button class="start" onclick="controlBGM('/play_bgm')">Start BGM</button>
+        <button class="stop" onclick="controlBGM('/stop_bgm')">Stop BGM</button>
+    </div>
+    <!-- Rhythm Game Display -->
+    <div class="rhythm-container">
+        <div class="column" id="col0">
+            <div class="judgeline"></div>
+        </div>
+        <div class="column" id="col1">
+            <div class="judgeline"></div>
+        </div>
+        <div class="column" id="col2">
+            <div class="judgeline"></div>
+        </div>
+    </div>
+</body>
+</html>
