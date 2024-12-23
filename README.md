@@ -80,7 +80,7 @@ BeatBattle/
 │   └─ index.html          # Flask 템플릿 (웹 UI)
 ├─ .gitignore
 ├─ README.md               # 이 문서
-└─ LICENSE (선택)
+└─ LICENSE
 ```
 
 - **`server/`**:  
@@ -93,8 +93,8 @@ BeatBattle/
   - Flask가 렌더링할 HTML(지금은 `index.html` 한 파일)  
 - **`.gitignore`**:  
   - `__pycache__`, `*.pyc`, 임시 파일 등은 깃에 올라가지 않도록 처리  
-- **`LICENSE`** (선택):  
-  - 오픈소스로 공개할 경우 MIT, Apache2 등으로 라이선스를 명시  
+- **`LICENSE`** :  
+  - 이 프로젝트는는 MIT 라이선스를 따릅니다.
 
 <br/>
 
@@ -185,7 +185,7 @@ BeatBattle/
 
 <br/>
 
-## 라이선스 (License) (선택)
+## 라이선스 (License)
 
 이 프로젝트는 [MIT License](./LICENSE)를 따릅니다.  
 자유롭게 Fork/수정/재배포할 수 있지만, 출처 표기를 부탁드립니다.
@@ -194,7 +194,7 @@ BeatBattle/
 
 ---
 
-## FAQ (자주 묻는 질문) (선택)
+## FAQ (자주 묻는 질문)
 
 - **Q**: 라즈베리 파이가 없으면 테스트가 불가능한가요?  
   **A**: 로컬 환경에서 일부 소켓/Flask 동작은 확인 가능하지만, 실제 버튼/LED 기능은 라즈베리 파이 환경이 필요합니다.
